@@ -403,11 +403,11 @@ public class TableMetaGenerator {
      * @throws SQLException
      */
     private static String getIdentifierName(String name, DatabaseMetaData metaData) throws SQLException {
-        if (metaData.storesMixedCaseIdentifiers()) {
+        if (metaData.storesMixedCaseIdentifiers()&&metaData.storesMixedCaseQuotedIdentifiers()) {
             return name; // 保留原始名
-        } else if (metaData.storesUpperCaseIdentifiers()) {
+        } else if (metaData.storesUpperCaseIdentifiers()&&metaData.storesUpperCaseQuotedIdentifiers) {
             return StringUtils.upperCase(name);
-        } else if (metaData.storesLowerCaseIdentifiers()) {
+        } else if (metaData.storesLowerCaseIdentifiers()&&metaData.storesLowerCaseQuotedIdentifiers) {
             return StringUtils.lowerCase(name);
         } else {
             return name;
