@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * Not thread safe
  */
-public class MysqlCanalExtractor extends AbstractSqlServerExtractor {
+public class MysqlCanalExtractor extends AbstractMysqlExtractor {
 
   private final String schemaName;
   private final String tableName;
