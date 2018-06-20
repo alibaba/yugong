@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 /**
  * Not thread safe
  */
-public class MysqlCanalRedisExtractor extends AbstractSqlServerExtractor {
+public class MysqlCanalRedisExtractor extends AbstractMysqlExtractor {
 
   private final String schemaName;
   private final String tableName;
