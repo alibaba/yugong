@@ -26,8 +26,12 @@ import com.taobao.yugong.extractor.RecordExtractor;
 import com.taobao.yugong.positioner.RecordPositioner;
 import com.taobao.yugong.translator.BackTableDataTranslator;
 import com.taobao.yugong.translator.DataTranslator;
+import com.taobao.yugong.translator.TableMetaTranslator;
 import com.taobao.yugong.translator.core.EncodeDataTranslator;
 import com.taobao.yugong.translator.core.OracleIncreamentDataTranslator;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -49,34 +53,86 @@ import java.util.concurrent.atomic.AtomicLong;
 public class YuGongInstance extends AbstractYuGongLifeCycle {
 
   private final Logger logger = LoggerFactory.getLogger(YuGongInstance.class);
+  @Getter
+  @Setter
   private YuGongContext context;
+  @Getter
+  @Setter
   private RecordExtractor extractor;
+  @Getter
+  @Setter
   private RecordApplier applier;
-  private DataTranslator translator;
+  @Getter
+  @Setter
+  private List<DataTranslator> defaultTranslators = Lists.newArrayList();
+  @Getter
+  @Setter
+  private List<DataTranslator> translators = Lists.newArrayList();
+  @Getter
+  @Setter
+  private List<TableMetaTranslator> tableMetaTranslators = Lists.newArrayList(); // XXX
+  @Getter
+  @Setter
   private RecordPositioner positioner;
+  @Getter
+  @Setter
   private AlarmService alarmService;
+  @Getter
+  @Setter
   private String alarmReceiver;
+  @Getter
+  @Setter
   private TableController tableController;
+  @Getter
+  @Setter
   private ProgressTracer progressTracer;
+  @Getter
+  @Setter
   private StatAggregation statAggregation;
+  @Getter
+  @Setter
   private DbType targetDbType;
-
-  private List<DataTranslator> coreTranslators = Lists.newArrayList();
+  @Getter
+  @Setter
   private Thread worker = null;
+  @Getter
+  @Setter
   private volatile boolean extractorDump = true;
+  @Getter
+  @Setter
   private volatile boolean applierDump = true;
+  @Getter
+  @Setter
   private CountDownLatch mutex = new CountDownLatch(1);
+  @Getter
+  @Setter
   private YuGongException exception = null;
+  @Getter
+  @Setter
   private String tableShitKey;
+  @Getter
+  @Setter
   private int retryTimes = 1;
+  @Getter
+  @Setter
   private int retryInterval;
+  @Getter
+  @Setter
   private int noUpdateThresold;
+  @Getter
+  @Setter
   private int noUpdateTimes = 0;
-
-  // translator
+  @Getter
+  @Setter
   private boolean concurrent = true;
+  @Getter
+  @Setter
   private int threadSize = 5;
+  @Getter
+  @Setter
   private ThreadPoolExecutor executor;
+  @Getter
+  @Setter
   private String executorName;
 
   public YuGongInstance(YuGongContext context) {
@@ -103,9 +159,10 @@ public class YuGongInstance extends AbstractYuGongLifeCycle {
       }
 
       // 后续可改进为按类型识别添加
-      coreTranslators.add(new OracleIncreamentDataTranslator());
+      defaultTranslators.add(new OracleIncreamentDataTranslator());
       if (targetDbType.isOracle()) {
-        coreTranslators.add(new EncodeDataTranslator(context.getSourceEncoding(), context.getTargetEncoding())); // oracle源库已经正确将编码转为'UTF-8'了
+        defaultTranslators.add(new EncodeDataTranslator(context.getSourceEncoding(),
+            context.getTargetEncoding())); // oracle源库已经正确将编码转为'UTF-8'了
       }
 
       if (!positioner.isStart()) {
@@ -124,7 +181,6 @@ public class YuGongInstance extends AbstractYuGongLifeCycle {
       }
 
       worker = new Thread(new Runnable() {
-
         public void run() {
           try {
             if (context.getRunMode() != RunMode.INC) {
@@ -199,14 +255,14 @@ public class YuGongInstance extends AbstractYuGongLifeCycle {
                   extractorDump);
 
               // 是否有系统的translator处理
-              if (YuGongUtils.isNotEmpty(coreTranslators)) {
-                for (DataTranslator translator : coreTranslators) {
-                  records = processTranslator(translator, records);
-                }
+              for (DataTranslator translator : defaultTranslators) {
+                records = processTranslator(translator, records);
               }
 
               // 转换数据
-              records = processTranslator(translator, records);
+              for (DataTranslator translator : translators) {
+                records = processTranslator(translator, records);
+              }
 
               // 载入数据
               Throwable applierException = null;
@@ -274,20 +330,18 @@ public class YuGongInstance extends AbstractYuGongLifeCycle {
           if (records.isEmpty()) {
             return records;
           }
-
-          if (translator != null) {
-            if (translator instanceof BackTableDataTranslator) {
-              ExecutorTemplate template = null;
-              if (concurrent) {
-                template = new ExecutorTemplate(executor);
-              }
-              records = ((BackTableDataTranslator) translator).translator(context.getSourceDs(),
-                  context.getTargetDs(),
-                  records,
-                  template);
-            } else {
-              records = translator.translator(records);
+          if (translator == null) {
+            return records;
+          }
+          if (translator instanceof BackTableDataTranslator) {
+            ExecutorTemplate template = null;
+            if (concurrent) {
+              template = new ExecutorTemplate(executor);
             }
+            records = ((BackTableDataTranslator) translator).translator(context.getSourceDs(),
+                context.getTargetDs(), records, template);
+          } else {
+            records = translator.translator(records);
           }
 
           return records;
@@ -327,7 +381,7 @@ public class YuGongInstance extends AbstractYuGongLifeCycle {
 
       logger.info("table[{}] start successful. extractor:{} , applier:{}, translator:{}", new Object[]{
           context.getTableMeta().getFullName(), extractor.getClass().getName(), applier.getClass().getName(),
-          translator != null ? translator.getClass().getName() : "NULL"});
+          translators != null ? translators: "NULL"});
     } catch (InterruptedException e) {
       progressTracer.update(context.getTableMeta().getFullName(), ProgressStatus.FAILED);
       exception = new YuGongException(e);
@@ -394,102 +448,6 @@ public class YuGongInstance extends AbstractYuGongLifeCycle {
     if (runTime > 0) {
       Thread.sleep(runTime);
     }
-  }
-
-  public RecordExtractor getExtractor() {
-    return extractor;
-  }
-
-  public void setExtractor(RecordExtractor extractor) {
-    this.extractor = extractor;
-  }
-
-  public RecordApplier getApplier() {
-    return applier;
-  }
-
-  public void setApplier(RecordApplier applier) {
-    this.applier = applier;
-  }
-
-  public DataTranslator getTranslator() {
-    return translator;
-  }
-
-  public void setTranslator(DataTranslator translator) {
-    this.translator = translator;
-  }
-
-  public RecordPositioner getPositioner() {
-    return positioner;
-  }
-
-  public void setPositioner(RecordPositioner positioner) {
-    this.positioner = positioner;
-  }
-
-  public void setAlarmService(AlarmService alarmService) {
-    this.alarmService = alarmService;
-  }
-
-  public void setExtractorDump(boolean extractorDump) {
-    this.extractorDump = extractorDump;
-  }
-
-  public void setApplierDump(boolean applierDump) {
-    this.applierDump = applierDump;
-  }
-
-  public void setTableController(TableController tableController) {
-    this.tableController = tableController;
-  }
-
-  public void setTableShitKey(String tableShitKey) {
-    this.tableShitKey = tableShitKey;
-  }
-
-  public void setStatAggregation(StatAggregation statAggregation) {
-    this.statAggregation = statAggregation;
-  }
-
-  public void setAlarmReceiver(String alarmReceiver) {
-    this.alarmReceiver = alarmReceiver;
-  }
-
-  public void setRetryTimes(int retryTimes) {
-    this.retryTimes = retryTimes;
-  }
-
-  public void setRetryInterval(int retryInterval) {
-    this.retryInterval = retryInterval;
-  }
-
-  public void setTargetDbType(DbType targetDbType) {
-    this.targetDbType = targetDbType;
-  }
-
-  public YuGongContext getContext() {
-    return context;
-  }
-
-  public void setProgressTracer(ProgressTracer progressTracer) {
-    this.progressTracer = progressTracer;
-  }
-
-  public void setNoUpdateThresold(int noUpdateThresold) {
-    this.noUpdateThresold = noUpdateThresold;
-  }
-
-  public void setThreadSize(int threadSize) {
-    this.threadSize = threadSize;
-  }
-
-  public void setConcurrent(boolean concurrent) {
-    this.concurrent = concurrent;
-  }
-
-  public void setExecutor(ThreadPoolExecutor executor) {
-    this.executor = executor;
   }
 
 }

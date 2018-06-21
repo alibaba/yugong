@@ -5,19 +5,10 @@ package com.taobao.yugong.common.model;
  */
 public enum DbType {
 
-  /**
-   * mysql DB
-   */
   MYSQL("com.mysql.jdbc.Driver"),
-  /**
-   * drds DB
-   */
   DRDS("com.mysql.jdbc.Driver"),
-  /**
-   * oracle DB
-   */
   ORACLE("oracle.jdbc.driver.OracleDriver"),
-  SqlServer("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+  SQL_SERVER("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
   private String driver;
 
@@ -42,7 +33,7 @@ public enum DbType {
   }
 
   public boolean isSqlServer() {
-    return this.equals(DbType.SqlServer);
+    return this.equals(DbType.SQL_SERVER);
   }
 
 }

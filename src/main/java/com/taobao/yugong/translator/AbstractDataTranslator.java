@@ -2,7 +2,9 @@ package com.taobao.yugong.translator;
 
 import com.google.common.collect.Lists;
 import com.taobao.yugong.common.model.record.Record;
-import com.taobao.yugong.translator.TableTranslators.TableTranslator;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -12,7 +14,9 @@ import java.util.List;
  */
 public class AbstractDataTranslator implements DataTranslator {
 
-  protected TableTranslator translator;
+  @Getter
+  @Setter
+  protected RecordTranslator translator;
 
   /**
    * 转换schemaName,如果返回null,则以每条数据Record的转义为准
@@ -55,14 +59,6 @@ public class AbstractDataTranslator implements DataTranslator {
     }
 
     return result;
-  }
-
-  public TableTranslator getTranslator() {
-    return translator;
-  }
-
-  public void setTranslator(TableTranslator translator) {
-    this.translator = translator;
   }
 
 }

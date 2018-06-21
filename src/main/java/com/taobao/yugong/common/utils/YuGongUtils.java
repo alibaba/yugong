@@ -1,23 +1,26 @@
 package com.taobao.yugong.common.utils;
 
+import com.google.common.base.CaseFormat;
 import com.taobao.yugong.common.db.meta.ColumnMeta;
+import com.taobao.yugong.common.db.meta.ColumnValue;
 import com.taobao.yugong.common.model.DbType;
 import com.taobao.yugong.exception.YuGongException;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collection;
 import java.util.List;
 
 import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ConnectionCallback;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 public class YuGongUtils {
 
@@ -51,24 +54,23 @@ public class YuGongUtils {
    */
   public static DbType judgeDbType(DataSource dataSource) {
     final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    return (DbType) jdbcTemplate.execute(new ConnectionCallback() {
+    return (DbType) jdbcTemplate.execute((ConnectionCallback) c -> {
+      DatabaseMetaData meta = c.getMetaData();
+      String databaseName = meta.getDatabaseProductName();
+      String version = meta.getDatabaseProductVersion();
 
-      public Object doInConnection(Connection c) throws SQLException, DataAccessException {
-        DatabaseMetaData meta = c.getMetaData();
-        String databaseName = meta.getDatabaseProductName();
-        String version = meta.getDatabaseProductVersion();
-
-        if (StringUtils.startsWithIgnoreCase(databaseName, "oracle")) {
-          return DbType.ORACLE;
-        } else if (StringUtils.startsWithIgnoreCase(databaseName, "mysql")) {
-          if (StringUtils.contains(version, "-TDDL-")) {
-            return DbType.DRDS;
-          } else {
-            return DbType.MYSQL;
-          }
+      if (StringUtils.startsWithIgnoreCase(databaseName, "oracle")) {
+        return DbType.ORACLE;
+      } else if (StringUtils.startsWithIgnoreCase(databaseName, "mysql")) {
+        if (StringUtils.contains(version, "-TDDL-")) {
+          return DbType.DRDS;
         } else {
-          throw new YuGongException("unknow database type " + databaseName);
+          return DbType.MYSQL;
         }
+      } else if (StringUtils.equalsIgnoreCase(databaseName, "Microsoft SQL Server")) {
+        return DbType.SQL_SERVER;
+      } else {
+        throw new YuGongException("unknow database type " + databaseName);
       }
     });
 
@@ -176,5 +178,74 @@ public class YuGongUtils {
     }
 
     return source;
+  }
+
+  public static ColumnValue getColumnValue(ResultSet resultSet, String encoding,
+      ColumnMeta columnMeta) throws 
+      SQLException {
+    Object value;
+    if (columnMeta.getType() == Types.DATE) {
+      value = resultSet.getTimestamp(columnMeta.getName());
+//      columnMeta = new ColumnMeta(columnMeta.getRawName(), Types.TIMESTAMP);
+      columnMeta = new ColumnMeta(columnMeta.getName(), Types.TIMESTAMP);
+    } else if (columnMeta.getType() == Types.TIMESTAMP) {
+      value = resultSet.getTimestamp(columnMeta.getName());
+      //      columnMeta = new ColumnMeta(columnMeta.getRawName(), Types.TIMESTAMP);
+      columnMeta = new ColumnMeta(columnMeta.getName(), Types.TIMESTAMP);
+    } else if (YuGongUtils.isCharType(columnMeta.getType())) {
+      // byte[] bytes = rs.getBytes(col.getName());
+      // if (bytes == null) {
+      // value = rs.getObject(col.getName());
+      // } else {
+      // try {
+      // value = new String(bytes, encoding);
+      // } catch (UnsupportedEncodingException e) {
+      // throw new YuGongException("codec error!!", e);
+      // }
+      // }
+
+      value = resultSet.getString(columnMeta.getName());
+    } else if (YuGongUtils.isClobType(columnMeta.getType())) {
+      // Clob c = rs.getClob(col.getName());
+      // if (c == null) {
+      // value = rs.getObject(col.getName());
+      // } else {
+      // InputStream is = c.getAsciiStream();
+      // byte[] bb = new byte[(int) c.length()];
+      // try {
+      // is.read(bb);
+      // } catch (IOException e) {
+      // throw new SQLException("read from clob error,column:" +
+      // col.getName(), e);
+      // }
+      //
+      // try {
+      // value = new String(bb, encoding);
+      // } catch (UnsupportedEncodingException e) {
+      // throw new RuntimeException("codec error!!", e);
+      // }
+      // }
+
+      value = resultSet.getString(columnMeta.getName());
+    } else if (YuGongUtils.isBlobType(columnMeta.getType())) {
+      value = resultSet.getBytes(columnMeta.getName());
+    } else {
+      value = resultSet.getObject(columnMeta.getName());
+    }
+
+    return new ColumnValue(columnMeta, value);
+  }
+  
+  public static CaseFormat ofCaseFormat(String input) {
+    if (input.equals(CaseFormat.LOWER_CAMEL.toString())) {
+      return CaseFormat.LOWER_CAMEL;
+    } else if (input.equals(CaseFormat.LOWER_UNDERSCORE.toString())) {
+      return CaseFormat.LOWER_UNDERSCORE;
+    } else if (input.equals(CaseFormat.UPPER_CAMEL.toString())) {
+      return CaseFormat.UPPER_CAMEL;
+    } else if (input.equals(CaseFormat.UPPER_UNDERSCORE.toString())) {
+      return CaseFormat.UPPER_UNDERSCORE;
+    }
+    throw new YuGongException(String.format("not supported %s", input));
   }
 }

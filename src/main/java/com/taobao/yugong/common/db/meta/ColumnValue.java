@@ -29,6 +29,7 @@ public class ColumnValue {
     return column;
   }
 
+
   public void setColumn(ColumnMeta column) {
     this.column = column;
   }

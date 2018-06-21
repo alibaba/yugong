@@ -20,8 +20,6 @@ public interface DataTranslator {
    */
   public String translatorTable();
 
-  // ==================
-
   /**
    * 单条记录处理，返回true代表需要同步，返回false需要忽略，如果对于源数据有修改，直接修改对应{@linkplain Record}的属性值
    */

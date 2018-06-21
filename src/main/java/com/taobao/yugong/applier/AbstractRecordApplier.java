@@ -7,6 +7,10 @@ import com.taobao.yugong.common.db.meta.Table;
 import com.taobao.yugong.common.lifecycle.AbstractYuGongLifeCycle;
 import com.taobao.yugong.common.model.record.Record;
 import com.taobao.yugong.exception.YuGongException;
+import com.taobao.yugong.translator.TableMetaTranslator;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.List;
@@ -17,12 +21,24 @@ import java.util.Set;
  * @author agapple 2014年2月25日 下午11:38:06
  * @since 1.0.0
  */
-public abstract class AbstractRecordApplier extends AbstractYuGongLifeCycle implements RecordApplier {
+public abstract class AbstractRecordApplier extends AbstractYuGongLifeCycle
+    implements RecordApplier {
+
+  @Getter
+  @Setter
+  private TableMetaTranslator tableMetaTranslator;
 
   public static class TableSqlUnit {
 
     public String applierSql;
+
+
+    //for mysql
+    public String applierInsertSql;
+    public String applierUpdateSql;
+
     public Map<String, Integer> applierIndexs;
+    public Map<String, Integer> applierPkIndexs;
   }
 
   protected Integer getIndex(final Map<String, Integer> indexs, ColumnValue cv) {
@@ -40,14 +56,15 @@ public abstract class AbstractRecordApplier extends AbstractYuGongLifeCycle impl
 
   /**
    * 检查下是否存在必要的字段
+   * @param indexs source table index
    */
-  protected void checkColumns(Table meta, Map<String, Integer> indexs) {
-    Set<String> idx = new HashSet<String>();
-    for (ColumnMeta column : meta.getColumns()) {
+  protected void checkIndexColumns(Table targetTableMeta, Map<String, Integer> indexs) {
+    Set<String> idx = new HashSet<>();
+    for (ColumnMeta column : targetTableMeta.getColumns()) {
       idx.add(column.getName());
     }
 
-    for (ColumnMeta column : meta.getPrimaryKeys()) {
+    for (ColumnMeta column : targetTableMeta.getPrimaryKeys()) {
       idx.add(column.getName());
     }
 

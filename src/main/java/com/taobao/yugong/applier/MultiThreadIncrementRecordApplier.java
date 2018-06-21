@@ -115,18 +115,12 @@ public class MultiThreadIncrementRecordApplier extends IncrementRecordApplier {
    * 划分为table + I/U/D类型
    */
   protected Map<List<String>, Map<IncrementOpType, List<IncrementRecord>>> buildBucket(List records) {
-    Map<List<String>, Map<IncrementOpType, List<IncrementRecord>>> buckets = MigrateMap.makeComputingMap(new Function<List<String>, Map<IncrementOpType, List<IncrementRecord>>>() {
+    Map<List<String>, Map<IncrementOpType, List<IncrementRecord>>> buckets = MigrateMap.makeComputingMap(names -> MigrateMap.makeComputingMap(new Function<IncrementOpType, List<IncrementRecord>>() {
 
-      public Map<IncrementOpType, List<IncrementRecord>> apply(List<String> names) {
-        return MigrateMap.makeComputingMap(new Function<IncrementOpType, List<IncrementRecord>>() {
-
-          public List<IncrementRecord> apply(IncrementOpType opType) {
-            return Lists.newArrayList();
-          }
-        });
+      public List<IncrementRecord> apply(IncrementOpType opType) {
+        return Lists.newArrayList();
       }
-
-    });
+    }));
 
     // 先按照I/U/D进行划分下
     for (Object record : records) {

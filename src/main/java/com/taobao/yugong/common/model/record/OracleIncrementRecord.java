@@ -2,6 +2,8 @@ package com.taobao.yugong.common.model.record;
 
 import com.taobao.yugong.common.db.meta.ColumnValue;
 
+import lombok.Data;
+
 import java.util.List;
 
 /**
@@ -9,6 +11,7 @@ import java.util.List;
  *
  * @author agapple 2013-9-16 下午4:11:05
  */
+@Data
 public class OracleIncrementRecord extends IncrementRecord {
 
   private ColumnValue rowId;
@@ -23,21 +26,6 @@ public class OracleIncrementRecord extends IncrementRecord {
     super(schemaName, tableName, primaryKeys, columns);
   }
 
-  public ColumnValue getRowId() {
-    return rowId;
-  }
-
-  public void setRowId(ColumnValue rowId) {
-    this.rowId = rowId;
-  }
-
-  public DiscardType getDiscardType() {
-    return discardType;
-  }
-
-  public void setDiscardType(DiscardType discardType) {
-    this.discardType = discardType;
-  }
 
   @Override
   public OracleIncrementRecord clone() {

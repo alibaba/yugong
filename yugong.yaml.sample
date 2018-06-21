@@ -1,0 +1,114 @@
+databases:
+  source:
+    schema: test
+  target:
+    schema: test
+
+table: 
+  a: todo
+  b: todo
+
+extractor:
+  a: todo
+  b: todo
+
+appiler:
+  a: todo
+  b: todo
+
+translators:
+  table:
+    '*':
+      - class: com.taobao.yugong.translator.NameTableMetaTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+    AnotherDemo:
+      - class: com.taobao.yugong.translator.NameTableMetaTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+    ProductProperty: []
+  record:
+    '*':
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          schema_to: test
+    'FrontCategory':
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          column_alias:
+            BussinessID:
+              - BusinessID
+            IsHighLight:
+              - IsHighlight
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+          schema_to: test
+    A:
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          column_alias:
+            Editdate:
+              - EditDate
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+          schema_to: test
+    B:
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          column_alias:
+            Indate:
+              - InDate
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+          schema_to: test
+    C:
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          column_alias:
+            Indate:
+              - InDate
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+          schema_to: test
+    D:
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          exclude_columns:
+            - a
+            - b
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+          schema_to: test
+

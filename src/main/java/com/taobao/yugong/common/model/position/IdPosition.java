@@ -16,8 +16,17 @@ public class IdPosition extends Position {
   private Number id;
   private List<ProgressStatus> progressHistory = new ArrayList<ProgressStatus>();
   private ProgressStatus currentProgress = ProgressStatus.UNKNOW;
+  private String updateTimeString;
 
   public IdPosition() {
+  }
+
+  public String getUpdateTimeString() {
+    return updateTimeString;
+  }
+
+  public void setUpdateTimeString(String updateTimeString) {
+    this.updateTimeString = updateTimeString;
   }
 
   public Number getId() {
@@ -57,6 +66,7 @@ public class IdPosition extends Position {
     position.setId(id);
     position.setCurrentProgress(currentProgress);
     position.setProgressHistory(progressHistory);
+    position.setUpdateTimeString(updateTimeString);
     return position;
   }
 
@@ -83,6 +93,9 @@ public class IdPosition extends Position {
     if (progressHistory == null) {
       if (other.progressHistory != null) return false;
     } else if (!progressHistory.equals(other.progressHistory)) return false;
+    if (updateTimeString == null) {
+      if (other.updateTimeString != null) return false;
+    } else if (!updateTimeString.equals(other.updateTimeString)) return false;
     return true;
   }
 

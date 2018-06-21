@@ -15,12 +15,12 @@
         </discriminator>
         <sift>
             <appender name="FILE-${table}" class="ch.qos.logback.core.rolling.RollingFileAppender">
-                <File>../logs/${table}/table.log</File>
+                <File>logs/${table}/table.log</File>
                 <rollingPolicy
                         class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <!-- rollover daily -->
                     <fileNamePattern>
-                        ../logs/${table}/%d{yyyy-MM-dd}/table-%d{yyyy-MM-dd}-%i.log.gz
+                        logs/${table}/%d{yyyy-MM-dd}/table-%d{yyyy-MM-dd}-%i.log.gz
                     </fileNamePattern>
                     <timeBasedFileNamingAndTriggeringPolicy
                             class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -46,12 +46,12 @@
         <sift>
             <appender name="EXTRACTOR_LOG_${table}"
                       class="ch.qos.logback.core.rolling.RollingFileAppender">
-                <File>../logs/${table}/extractor.log</File>
+                <File>logs/${table}/extractor.log</File>
                 <rollingPolicy
                         class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <!-- rollover daily -->
                     <fileNamePattern>
-                        ../logs/${table}/%d{yyyy-MM-dd}/extractor-%d{yyyy-MM-dd}-%i.log.gz
+                        logs/${table}/%d{yyyy-MM-dd}/extractor-%d{yyyy-MM-dd}-%i.log.gz
                     </fileNamePattern>
                     <timeBasedFileNamingAndTriggeringPolicy
                             class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -74,12 +74,12 @@
         <sift>
             <appender name="APPLIER_LOG_${table}"
                       class="ch.qos.logback.core.rolling.RollingFileAppender">
-                <File>../logs/${table}/applier.log</File>
+                <File>logs/${table}/applier.log</File>
                 <rollingPolicy
                         class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <!-- rollover daily -->
                     <fileNamePattern>
-                        ../logs/${table}/%d{yyyy-MM-dd}/applier-%d{yyyy-MM-dd}-%i.log.gz
+                        logs/${table}/%d{yyyy-MM-dd}/applier-%d{yyyy-MM-dd}-%i.log.gz
                     </fileNamePattern>
                     <timeBasedFileNamingAndTriggeringPolicy
                             class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -102,12 +102,12 @@
         <sift>
             <appender name="CHECK_LOG_${table}"
                       class="ch.qos.logback.core.rolling.RollingFileAppender">
-                <File>../logs/${table}/check.log</File>
+                <File>logs/${table}/check.log</File>
                 <rollingPolicy
                         class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                     <!-- rollover daily -->
                     <fileNamePattern>
-                        ../logs/${table}/%d{yyyy-MM-dd}/check-%d{yyyy-MM-dd}-%i.log.gz
+                        logs/${table}/%d{yyyy-MM-dd}/check-%d{yyyy-MM-dd}-%i.log.gz
                     </fileNamePattern>
                     <timeBasedFileNamingAndTriggeringPolicy
                             class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">

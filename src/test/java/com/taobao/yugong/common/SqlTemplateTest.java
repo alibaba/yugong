@@ -1,5 +1,6 @@
 package com.taobao.yugong.common;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.taobao.yugong.common.db.meta.ColumnMeta;
 import com.taobao.yugong.common.db.sql.SqlTemplates;
@@ -35,8 +36,8 @@ public class SqlTemplateTest {
     System.out.println(SqlTemplates.MYSQL.makeRange("col"));
     System.out.println(SqlTemplates.MYSQL.makeIn("col", 10));
 
-    System.out.println(SqlTemplates.MYSQL.getSelectSql("schema", "table", new String[]{}, new String[]{"cm1",
-        "cm2"}));
+    System.out.println(SqlTemplates.MYSQL.getSelectSql("schema", "table", ImmutableList.of(),
+        ImmutableList.of("cm1", "cm2")));
     // System.out.println(SqlTemplates.MYSQL.getSelectInSql("schema",
     // "table", new String[] {}, new String[] { "cm1",
     // "cm2" }, 5));

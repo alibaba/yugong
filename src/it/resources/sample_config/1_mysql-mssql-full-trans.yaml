@@ -1,0 +1,86 @@
+databases:
+  source:
+    schema: 
+  target:
+    schema: 
+table: 
+  a: todo
+  b: todo
+extractor:
+  a: todo
+  b: todo
+appiler:
+  a: todo
+  b: todo
+translators:
+  table:
+    '*':
+      - class: com.taobao.yugong.translator.NameTableMetaTranslator
+        properties:
+          column_case_format_from: LOWER_UNDERSCORE
+          column_case_format_to: UPPER_CAMEL
+          table_case_format_from: LOWER_UNDERSCORE
+          table_case_format_to: UPPER_CAMEL
+    ProductProperty: []
+  record:
+    '|BEFORE|':
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: LOWER_UNDERSCORE
+          # column_case_format_to: LOWER_UNDERSCORE
+          column_case_format_to: UPPER_CAMEL
+          table_case_format_from: LOWER_UNDERSCORE
+          # table_case_format_to: LOWER_UNDERSCORE
+          table_case_format_to: UPPER_CAMEL
+          schema_to: TEST_MSSQL
+      #- class: com.taobao.yugong.translator.ColumnFixDataTranslator
+      #  properties:
+      #    column_replace:
+    normal_detail:
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          table_to: NormalDetail
+    shop_order_detail:
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          table_to: ShopOrderDetail
+      - class: com.taobao.yugong.translator.CompositeIndexesDataTranslator
+        properties:
+          # sqlserver field
+          composite_indexes:
+            - OrderID
+            - ProductID
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          column_alias:
+            OrderId:
+              - OrderID
+            productId:
+              - ProductID
+          # exclude columns of source table    
+          exclude_columns:
+            - id
+            - timestamp
+    shop_order_detail_multi:
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          table_to: ShopOrderDetailMulti
+      - class: com.taobao.yugong.translator.CompositeIndexesDataTranslator
+        properties:
+          # # sqlserver field
+          composite_indexes:
+            - OrderID
+            - ProductID
+            - MultiProductID
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+          column_alias:
+            OrderId:
+              - OrderID
+            ProductId:
+              - ProductID
+            MultiProductId: 
+              - MultiProductID
+          # exclude columns of source table    
+          exclude_columns:
+            - id            

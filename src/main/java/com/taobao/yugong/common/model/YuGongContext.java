@@ -7,14 +7,18 @@ import javax.sql.DataSource;
 
 import com.taobao.yugong.common.db.meta.Table;
 import com.taobao.yugong.common.model.position.Position;
+import lombok.Data;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * yugong数据处理上下文
  *
  * @author agapple 2013-9-12 下午5:04:57
  */
+@Data
 public class YuGongContext {
 
   // 具体每张表的同步
@@ -32,123 +36,10 @@ public class YuGongContext {
   private boolean skipApplierException = false;  // 是否允许跳过applier异常
   private String sourceEncoding = "UTF-8";
   private String targetEncoding = "UTF-8";
-
+  private String[] ignorePkInspection;  //忽略源表pk检查的表，多表用英文逗号分隔
   private String mViewLogType = "";            // 创建物化视图日志的类型
-
-  private Map<String, String[]> tablepks             = new HashMap(); // 没有主键
-  // 实时同步时指定的判断字段
-
-  public Map<String, String[]> getTablepks() {
-    return tablepks;
-  }
-
-  public void setTablepks(Map<String, String[]> tablepks) {
-    this.tablepks = tablepks;
-  }
-
-  public String getmViewLogType() {
-    return mViewLogType;
-  }
-
-  public void setmViewLogType(String mViewLogType) {
-    this.mViewLogType = mViewLogType;
-  }
-
-  public Position getLastPosition() {
-    return lastPosition;
-  }
-
-  public void setLastPosition(Position lastPosition) {
-    this.lastPosition = lastPosition;
-  }
-
-  public int getOnceCrawNum() {
-    return onceCrawNum;
-  }
-
-  public void setOnceCrawNum(int onceCrawNum) {
-    this.onceCrawNum = onceCrawNum;
-  }
-
-  public DataSource getSourceDs() {
-    return sourceDs;
-  }
-
-  public void setSourceDs(DataSource sourceDs) {
-    this.sourceDs = sourceDs;
-  }
-
-  public DataSource getTargetDs() {
-    return targetDs;
-  }
-
-  public void setTargetDs(DataSource targetDs) {
-    this.targetDs = targetDs;
-  }
-
-  public boolean isBatchApply() {
-    return batchApply;
-  }
-
-  public void setBatchApply(boolean batchApply) {
-    this.batchApply = batchApply;
-  }
-
-  public String getSourceEncoding() {
-    return sourceEncoding;
-  }
-
-  public void setSourceEncoding(String sourceEncoding) {
-    this.sourceEncoding = sourceEncoding;
-  }
-
-  public String getTargetEncoding() {
-    return targetEncoding;
-  }
-
-  public void setTargetEncoding(String targetEncoding) {
-    this.targetEncoding = targetEncoding;
-  }
-
-  public Table getTableMeta() {
-    return tableMeta;
-  }
-
-  public void setTableMeta(Table tableMeta) {
-    this.tableMeta = tableMeta;
-  }
-
-  public int getTpsLimit() {
-    return tpsLimit;
-  }
-
-  public void setTpsLimit(int tpsLimit) {
-    this.tpsLimit = tpsLimit;
-  }
-
-  public RunMode getRunMode() {
-    return runMode;
-  }
-
-  public void setRunMode(RunMode runMode) {
-    this.runMode = runMode;
-  }
-
-  public boolean isIgnoreSchema() {
-    return ignoreSchema;
-  }
-
-  public void setIgnoreSchema(boolean ignoreSchema) {
-    this.ignoreSchema = ignoreSchema;
-  }
-
-  public boolean isSkipApplierException() {
-    return skipApplierException;
-  }
-
-  public void setSkipApplierException(boolean skipApplierException) {
-    this.skipApplierException = skipApplierException;
-  }
+  private Map<String, String[]> specifiedPks = new HashMap<>(); //每张表指定的主键或联合主键
+  private Map<String, String[]> tablepks = new HashMap(); // 没有主键
 
   public YuGongContext cloneGlobalContext() {
     YuGongContext context = new YuGongContext();
@@ -162,7 +53,9 @@ public class YuGongContext {
     context.setTpsLimit(tpsLimit);
     context.setIgnoreSchema(ignoreSchema);
     context.setSkipApplierException(skipApplierException);
-    context.setmViewLogType(mViewLogType);
+    context.setIgnorePkInspection(ignorePkInspection);
+    context.setSpecifiedPks(specifiedPks);
+    context.setMViewLogType(mViewLogType);
     context.setTablepks(tablepks);
     return context;
   }

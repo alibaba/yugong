@@ -1,0 +1,86 @@
+databases:
+  source:
+    schema: 
+  target:
+    schema: 
+table: 
+  a: todo
+  b: todo
+extractor:
+  a: todo
+  b: todo
+appiler:
+  a: todo
+  b: todo
+translators:
+  table:
+    '*':
+      - class: com.taobao.yugong.translator.NameTableMetaTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+    ProductProperty: []
+  record:
+    '|BEFORE|':
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          column_case_format_from: UPPER_CAMEL
+          column_case_format_to: LOWER_UNDERSCORE
+          table_case_format_from: UPPER_CAMEL
+          table_case_format_to: LOWER_UNDERSCORE
+          schema_to: test_mysql
+      #- class: com.taobao.yugong.translator.ColumnFixDataTranslator
+      #  properties:
+      #    column_replace:
+    NormalDetail:
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          table_to: normal_detail
+    ShopOrderDetail:
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          table_to: shop_order_detail
+      - class: com.taobao.yugong.translator.CompositeIndexesDataTranslator
+        properties:
+      #    # target db field
+          composite_indexes:
+           - order_id
+           - product_id
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+      #    column_alias:
+      #      OrderId:
+      #        - order_id
+      #      ProductId:
+      #        - product_id
+          # exclude columns of source table    
+          exclude_columns:
+          #  - id
+           - timestamp
+           - _physloc_pk
+    ShopOrderDetailMulti:
+      - class: com.taobao.yugong.translator.NameStyleDataTranslator
+        properties:
+          table_to: shop_order_detail_multi
+      - class: com.taobao.yugong.translator.CompositeIndexesDataTranslator
+        properties:
+          # # target db field
+          composite_indexes:
+           - order_id
+           - product_id
+           - multi_product_id
+      - class: com.taobao.yugong.translator.ColumnFixDataTranslator
+        properties:
+      #    column_alias:
+      #      OrderId:
+      #        - order_id
+      #      ProductId:
+       #       - product_id
+       #     MultiProductId: 
+       #       - multi_product_id
+          # exclude columns of source table    
+          exclude_columns:
+            - _physloc_pk
+                     

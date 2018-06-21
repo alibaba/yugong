@@ -119,20 +119,22 @@ public class SqlTemplate {
     return sb.toString();
   }
 
-  public String getSelectSql(String schemaName, String tableName, String[] pkNames, String[] colNames) {
+  public String getSelectSql(String schemaName, String tableName, List<String> pkNames,
+      List<String> colNames) {
     StringBuilder sql = new StringBuilder();
     sql.append("select ");
-    String[] allColumns = buildAllColumns(pkNames, colNames);
+    String[] allColumns = buildAllColumns(pkNames.toArray(new String[0]),
+        colNames.toArray(new String[0]));
     int size = allColumns.length;
     for (int i = 0; i < size; i++) {
       sql.append(getColumnName(allColumns[i])).append(splitCommea(size, i));
     }
 
     sql.append(" from ").append(makeFullName(schemaName, tableName)).append(" where ( ");
-    if (pkNames.length > 0) { // 可能没有主键
-      makeColumnEquals(sql, pkNames, "and");
+    if (pkNames.size() > 0) { // 可能没有主键
+      makeColumnEquals(sql, pkNames.toArray(new String[0]), "and");
     } else {
-      makeColumnEquals(sql, colNames, "and");
+      makeColumnEquals(sql, colNames.toArray(new String[0]), "and");
     }
     sql.append(" ) ");
     return sql.toString().intern();
@@ -241,6 +243,10 @@ public class SqlTemplate {
 
   protected String splitCommea(int size, int i) {
     return (i + 1 < size) ? " , " : "";
+  }
+
+  protected String splitAnd(int size, int i){
+    return (i + 1 < size) ? " and " : "";
   }
 
   protected String[] buildAllColumns(String[] pkNames, String[] colNames) {

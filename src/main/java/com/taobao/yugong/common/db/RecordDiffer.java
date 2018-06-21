@@ -1,5 +1,6 @@
 package com.taobao.yugong.common.db;
 
+import com.google.common.base.Joiner;
 import com.taobao.yugong.common.audit.RecordDumper;
 import com.taobao.yugong.common.db.meta.ColumnValue;
 import com.taobao.yugong.common.model.record.Record;
@@ -8,6 +9,7 @@ import com.taobao.yugong.exception.YuGongException;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.reflect.TypeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,8 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 记录对比
@@ -25,35 +29,45 @@ import java.util.List;
 public class RecordDiffer {
 
   private static final String SEP = SystemUtils.LINE_SEPARATOR;
-  private static String record_format = null;
+  private static String RECORD_FORMAT = null;
   private static final Logger diffLogger = LoggerFactory.getLogger("check");
 
   static {
-    record_format = SEP + "-----------------" + SEP;
-    record_format += "- Schema: {0} , Table: {1}" + SEP;
-    record_format += "-----------------" + SEP;
-    record_format += "---Pks" + SEP;
-    record_format += "{2}" + SEP;
-    record_format += "---diff" + SEP;
-    record_format += "\t{3}" + SEP;
+    RECORD_FORMAT = SEP + "-----------------" + SEP;
+    RECORD_FORMAT += "- Schema: {0} , Table: {1}" + SEP;
+    RECORD_FORMAT += "-----------------" + SEP;
+    RECORD_FORMAT += "---Pks" + SEP;
+    RECORD_FORMAT += "{2}" + SEP;
+    RECORD_FORMAT += "---diff" + SEP;
+    RECORD_FORMAT += "\t{3}" + SEP;
   }
 
-  public static void diff(Record record1, Record record2) {
+  /**
+   * diff two record, ignore column order
+   */
+  public static String diff(Record record1, Record record2) {
+    String message = "";
     if (record2 == null) {
-      diffLogger.info(diffMessage(record1.getSchemaName(),
+      message = diffMessage(record1.getSchemaName(),
           record1.getTableName(),
           record1.getPrimaryKeys(),
-          "record not found"));
-      return;
+          "record not found");
+      diffLogger.info(message);
+      return message;
     }
 
     if (record1.getColumns().size() > record2.getColumns().size()) {
-      diffLogger.info(diffMessage(record1.getSchemaName(),
+      Set<String> columnNames = record1.getColumns().stream()
+          .map(x -> x.getColumn().getName()).collect(Collectors.toSet());
+      columnNames.removeAll(record2.getColumns().stream()
+              .map(x -> x.getColumn().getName()).collect(Collectors.toSet()));
+      message = diffMessage(record1.getSchemaName(),
           record1.getTableName(),
           record1.getPrimaryKeys(),
-          "column size is great than target column size"));
-
-      return;
+          "column size " + record1.getColumns().size() + " is great than target column size"
+              + record2.getColumns().size() + ", more: " + Joiner.on(", ").join(columnNames));
+      diffLogger.info(message);
+      return message;
     }
 
     StringBuilder diff = new StringBuilder();
@@ -62,18 +76,22 @@ public class RecordDiffer {
 
     for (int i = 0; i < size; i++) {
       ColumnValue column = record1.getColumns().get(i);
-      same &= campareOneColumn(column, getColumn(record2, column.getColumn().getName()), diff);
+      same &= compareOneColumn(column, getColumn(record2, column.getColumn().getName()), diff);
     }
 
     if (!same) {
-      diffLogger.info(diffMessage(record1.getSchemaName(),
+      message = diffMessage(record1.getSchemaName(),
           record2.getTableName(),
           record1.getPrimaryKeys(),
-          diff.toString()));
+          diff.toString());
+      diffLogger.info(message);
+      return message;
     }
+    return message;
   }
 
-  private static boolean campareOneColumn(ColumnValue column1, ColumnValue column2, StringBuilder diff) {
+  private static boolean compareOneColumn(ColumnValue column1, ColumnValue column2,
+      StringBuilder diff) {
     if (!column1.isCheck() || !column2.isCheck()) {
       return true;// 可能不需要做对比，忽略
     }
@@ -87,10 +105,18 @@ public class RecordDiffer {
     StringBuilder message = new StringBuilder();
     message.append(column1.getColumn())
         .append(" , values : [")
-        .append(ObjectUtils.toString(value1))
+        .append(ObjectUtils.toString(value1 == null ? "null" : value1))
         .append("] vs [")
-        .append(ObjectUtils.toString(value2))
-        .append("]\n\t");
+        .append(ObjectUtils.toString(value2 == null ? "null" : value2))
+        .append("]");
+    if (value1 != null && value2 != null && (value1.getClass() != value2.getClass())) {
+      message.append(", type : [")
+          .append(value1.getClass())
+          .append("] vs [")
+          .append(value2.getClass())
+          .append("]");
+    }
+    message.append("\n\t");
 
     if ((value1 == null && value2 != null) || (value1 != null && value2 == null)) {
       diff.append(message);
@@ -106,6 +132,11 @@ public class RecordDiffer {
           String v2 = value2.toString();
           // 2012-02-02 02:02:02 与 2012-02-02 肯定是一种包含关系
           if (v1.contains(v2) || v2.contains(v1)) {
+            return true;
+          }
+          // ignore difference in 1 second
+          if (Math.abs(((Date)value1).getTime() - ((Date) value2).getTime()) < 1000) {
+            // TODO add configurable
             return true;
           }
         } else {
@@ -172,8 +203,9 @@ public class RecordDiffer {
     throw new YuGongException("column[" + columnName + "] is not found.");
   }
 
-  private static String diffMessage(String schemaName, String tableName, List<ColumnValue> primaryKeys, String message) {
-    return MessageFormat.format(record_format,
+  private static String diffMessage(String schemaName, String tableName,
+      List<ColumnValue> primaryKeys, String message) {
+    return MessageFormat.format(RECORD_FORMAT,
         schemaName,
         tableName,
         RecordDumper.dumpRecordColumns(primaryKeys),

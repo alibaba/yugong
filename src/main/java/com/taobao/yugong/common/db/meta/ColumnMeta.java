@@ -2,8 +2,12 @@ package com.taobao.yugong.common.db.meta;
 
 import com.taobao.yugong.common.utils.YuGongToStringStyle;
 
+import lombok.Data;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
+
+import java.sql.JDBCType;
 
 /**
  * 代表一个字段的信息
@@ -11,38 +15,28 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  * @author agapple 2013-9-3 下午2:46:32
  * @since 3.0.0
  */
+@Data
 public class ColumnMeta {
 
-  private String name;
-  private int type;
+//  private String rawName;
+  private final String name;
+  private final int type;
 
   public ColumnMeta(String columnName, int columnType) {
-    this.name = StringUtils.upperCase(columnName);// 统一为大写
+//    this.rawName = columnName;
+    this.name = columnName;
+//    this.name = StringUtils.upperCase(columnName);// 统一为大写
     this.type = columnType;
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public int getType() {
-    return type;
-  }
-
-  public void setName(String name) {
-    this.name = StringUtils.upperCase(name);
-  }
-
-  public void setType(int type) {
-    this.type = type;
-  }
 
   public ColumnMeta clone() {
+//    return new ColumnMeta(this.rawName, this.type);
     return new ColumnMeta(this.name, this.type);
   }
 
   public String toString() {
-    return ToStringBuilder.reflectionToString(this, YuGongToStringStyle.DEFAULT_STYLE);
+    return String.format("ColumnMeta[name=%s,type=%s]", this.name, JDBCType.valueOf(this.type));
   }
 
   @Override

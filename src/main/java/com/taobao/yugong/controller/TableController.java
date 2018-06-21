@@ -13,7 +13,7 @@ public class TableController {
 
   private CountDownLatch countLatch;
   private Semaphore sem;
-  private LinkedBlockingQueue<YuGongInstance> queue = new LinkedBlockingQueue<YuGongInstance>();
+  private LinkedBlockingQueue<YuGongInstance> queue = new LinkedBlockingQueue<>();
 
   public TableController(int total, int cocurrent) {
     this.countLatch = new CountDownLatch(total);
