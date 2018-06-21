@@ -352,7 +352,7 @@ public class CheckRecordApplier extends AbstractRecordApplier {
     if (sqlUnit != null) {
       return sqlUnit;
     }
-    synchronized (names) {
+    synchronized (this) {
       sqlUnit = selectSqlCache.get(names);
       if (sqlUnit == null) { // double-check
         sqlUnit = new TableSqlUnit();

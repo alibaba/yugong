@@ -1,5 +1,10 @@
 package com.taobao.yugong.common.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import com.taobao.yugong.common.db.meta.Table;
 import com.taobao.yugong.common.model.position.Position;
 import lombok.Data;
