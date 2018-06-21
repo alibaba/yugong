@@ -16,8 +16,7 @@ import com.taobao.yugong.common.utils.YuGongUtils;
 import com.taobao.yugong.exception.YuGongException;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory
-    ;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
@@ -51,6 +50,7 @@ public class IncrementRecordApplier extends AbstractRecordApplier {
   protected YuGongContext context;
   protected DbType sourceDbType;
   protected DbType targetDbType;
+  // TODO use configuration
   private ImmutableList<String> noAutoIncrementTables = ImmutableList.of("User_FinanceAuth",
       "user_ext", "user_level", "Hujiangid_WXunionid", "uc_QQ", "uc_Sina", "uc_Profile");
 
@@ -159,7 +159,7 @@ public class IncrementRecordApplier extends AbstractRecordApplier {
     List<String> names = Arrays.asList(record.getSchemaName(), record.getTableName());
     TableSqlUnit sqlUnit = insertSqlCache.get(names);
     if (sqlUnit == null) {
-      synchronized (names) {
+      synchronized (this) {
         sqlUnit = insertSqlCache.get(names);
         if (sqlUnit == null) { // double-check
           sqlUnit = new TableSqlUnit();
@@ -241,7 +241,7 @@ public class IncrementRecordApplier extends AbstractRecordApplier {
     List<String> names = Arrays.asList(record.getSchemaName(), record.getTableName());
     TableSqlUnit sqlUnit = updateSqlCache.get(names);
     if (sqlUnit == null) {
-      synchronized (names) {
+      synchronized (this) {
         sqlUnit = updateSqlCache.get(names);
         if (sqlUnit == null) { // double-check
           sqlUnit = new TableSqlUnit();
@@ -315,7 +315,7 @@ public class IncrementRecordApplier extends AbstractRecordApplier {
     List<String> names = Arrays.asList(record.getSchemaName(), record.getTableName());
     TableSqlUnit sqlUnit = deleteSqlCache.get(names);
     if (sqlUnit == null) {
-      synchronized (names) {
+      synchronized (this) {
         sqlUnit = deleteSqlCache.get(names);
         if (sqlUnit == null) { // double-check
           sqlUnit = new TableSqlUnit();

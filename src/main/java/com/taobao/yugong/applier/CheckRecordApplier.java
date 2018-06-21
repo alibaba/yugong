@@ -2,6 +2,26 @@ package com.taobao.yugong.applier;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MigrateMap;
 import com.taobao.yugong.common.db.RecordDiffer;
@@ -15,17 +35,6 @@ import com.taobao.yugong.common.model.YuGongContext;
 import com.taobao.yugong.common.model.record.Record;
 import com.taobao.yugong.common.utils.YuGongUtils;
 import com.taobao.yugong.exception.YuGongException;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-
-import java.sql.ResultSet;
-import java.util.*;
-import java.util.stream.Collectors;
-
 
 /**
  * 增加数据对比
@@ -66,6 +75,7 @@ public class CheckRecordApplier extends AbstractRecordApplier {
   }
 
   public void apply(List<Record> records) throws YuGongException {
+    // no one,just return
     if (YuGongUtils.isEmpty(records)) {
       return;
     }

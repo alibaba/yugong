@@ -20,6 +20,14 @@ yugong.table.skipApplierException=false
 #yugong.table.white=yugong_example_join,yugong_example_oracle,yugong_example_two
 yugong.table.white=yugong_example_oracle
 yugong.table.black=
+
+# materialized view log creation type   .
+# PK or ROWID
+yugong.table.inc.mviewlogtype=
+#tablename1&pk1&pk2|tablename2&pk1
+yugong.table.inc.tablepks= yugong_example_oracle&id
+
+
 # tables use multi-thread enable or disable
 yugong.table.concurrent.enable=true
 # tables use multi-thread size

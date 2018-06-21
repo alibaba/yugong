@@ -32,7 +32,9 @@ public class YuGongContext {
   private String sourceEncoding = "UTF-8";
   private String targetEncoding = "UTF-8";
   private String[] ignorePkInspection;  //忽略源表pk检查的表，多表用英文逗号分隔
+  private String mViewLogType = "";            // 创建物化视图日志的类型
   private Map<String, String[]> specifiedPks = new HashMap<>(); //每张表指定的主键或联合主键
+  private Map<String, String[]> tablepks = new HashMap(); // 没有主键
 
   public YuGongContext cloneGlobalContext() {
     YuGongContext context = new YuGongContext();
@@ -48,6 +50,8 @@ public class YuGongContext {
     context.setSkipApplierException(skipApplierException);
     context.setIgnorePkInspection(ignorePkInspection);
     context.setSpecifiedPks(specifiedPks);
+    context.setMViewLogType(mViewLogType);
+    context.setTablepks(tablepks);
     return context;
   }
 

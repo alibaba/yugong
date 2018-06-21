@@ -1,161 +1,80 @@
-# yugong
+## 背景
 
-[TOC]
+08年左右，阿里巴巴开始尝试MySQL的相关研究，并开发了基于MySQL分库分表技术的相关产品，Cobar/TDDL(目前为阿里云DRDS产品)，解决了单机Oracle无法满足的扩展性问题，当时也掀起一股去IOE项目的浪潮，愚公这项目因此而诞生，其要解决的目标就是帮助用户完成从Oracle数据迁移到MySQL上，完成去IOE的第一步. 
 
-
-## 目的
-
-*   SQL Server -> MySQL 的一致性检查（CHECK）
-*   MySQL -> SQL Server 的回滚（SYNC）
-
-## 获得 yugong jar 包
-
-方法一：编译 yugong jar 包：
-
-```
-git git@gitlab.yeshj.com:hjarch-practice/yugong.git
-cd yugong
-mvn clean package
-cp target/yugong-shaded.jar .
-```
-
-方法二：
-不想编译的同学，
-直接点击 [Tags · HJArch-Internal / yugong · GitLab](https://gitlab.yeshj.com/hjarch-practice/yugong/tags?search=release-binary&sort=updated_desc) ,
-找到里面最新的版本，里面有 jar 包下载。
+## 项目介绍
 
 
-## 配置文件
+名称:   yugong
 
-有两个配置文件：
+译意:   愚公移山
 
-*   properties，配置数据库信息和作业信息
-*   YAML 配置文件，做 Translator 定制化
+语言:   纯java开发
 
+定位:   数据库迁移 (目前主要支持oracle / mysql / DRDS)
 
-修改配置文件，可以参考其他产线已经在用的配置：
-[Files · master · HJArch-Internal / yugong-conf · GitLab](https://gitlab.yeshj.com/hjarch-practice/yugong-conf/tree/master)
-
-
-## 运行
-
-HJ 使用的 yugong 已经改为 fat jar 模式运行，摒弃了官方的打包流程。
-将生成的 fat jar `yugong-shaded.jar` 拷贝到服务器，即可运行。
+## 项目介绍
 
 
-运行参数：
+整个数据迁移过程，分为两部分：
 
-*   -c：使用的 yugong properties，配置数据库信息和作业信息
-*   -y：使用的 YAML 配置文件，做 Translator 定制化
+1.  全量迁移
+2.  增量迁移
 
+![](https://camo.githubusercontent.com/9a9cc09c5a7598239da20433857be61c54481b9c/687474703a2f2f646c322e69746579652e636f6d2f75706c6f61642f6174746163686d656e742f303131352f343531312f31306334666134632d626634342d333165352d623531312d6231393736643164373636392e706e67)
 
-运行命令：
+过程描述：
 
-```
-java -jar yugong-shaded.jar -c sync-mssql-mysql.properties -y mssql-mysql.yaml
-```
+1.  增量数据收集 (创建oracle表的增量物化视图)
+2.  进行全量复制
+3.  进行增量复制 (可并行进行数据校验)
+4.  原库停写，切到新库
 
-PS：如果想优化运行速度，可以加入 `JAVA_OPTIONS`：
-
-```
-JAVA_OPTIONS=("-Xms2048m" "-Xmx3072m" "-Xmn1024m" "-XX:SurvivorRatio=2" "-XX:PermSize=96m" "-XX:MaxPermSize=256m" "-Xss256k" "-XX:-UseAdaptiveSizePolicy" "-XX:MaxTenuringThreshold=15" "-XX:+DisableExplicitGC" "-XX:+UseConcMarkSweepGC" "-XX:+CMSParallelRemarkEnabled" "-XX:+UseCMSCompactAtFullCollection" "-XX:+UseFastAccessorMethods" "-XX:+UseCMSInitiatingOccupancyOnly" "-XX:+HeapDumpOnOutOfMemoryError")
-java -server $JAVA_OPTIONS -jar yugong-shaded.jar -c sync-mssql-mysql.properties -y mssql-mysql.yaml
-```
+## 架构
 
 
-## 运行之后的错误检查
+![](http://dl2.iteye.com/upload/attachment/0115/5473/8532d838-d4b2-371b-af9f-829d4127b1b8.png){width="584"
+height="206"}
 
-所有错误日志在 `logs` 目录下面，范例如下：
+说明: 
 
-```
-logs
-├── HJ_OpenPlatform.UserGroups  # 每张表的日志
-│   ├── applier.log  # Applier 日志
-│   ├── check.log  # 一致性检查日志
-│   ├── extractor.log  # Extractor 日志
-│   └── table.log  # 表操作日志
-└── yugong
-    └── table.log  # yugong 的系统日志
-```
+1.  一个Jvm Container对应多个instance，每个instance对应于一张表的迁移任务
+2.  instance分为三部分
+    a.  extractor  (从源数据库上提取数据，可分为全量/增量实现)
+    b.  translator  (将源库上的数据按照目标库的需求进行自定义转化)
+    c.  applier  (将数据更新到目标库，可分为全量/增量/对比的实现)
 
-运行之后，需要重点观察 `check.log` 和 `table.log` 确保里面没有 `ERROR` 信息。
-
-可以通过 `grep -r ERROR logs` 检查错误。
-
-每次操作会记录进度，用来断点续接。想重新开始跑应用，
-需要删除当前目录下的 `logs` / `positioner_data`。
+## DevDesign
 
 
-## Quick Start
+See the page for dev design:
+[DevDesign](https://github.com/alibaba/yugong/wiki/DevDesign)
 
-获取 yugong-shaded.jar 之后，做一下操作可以快速使用 yugong：
+## QuickStart
 
+See the page for quick start:
+[QuickStart](https://github.com/alibaba/yugong/wiki/QuickStart)
 
-*   配置自己的配置文件
-    *   从 `yugong-conf` 里面拷贝 [dict-dev/check-mssql-mysql.properties · master · HJArch-Internal / yugong-conf · GitLab](https://gitlab.yeshj.com/hjarch-practice/yugong-conf/blob/master/dict-dev/check-mssql-mysql.properties)
-    *   从 `yugong-conf` 里面拷贝 [dict-dev/mssql-mysql.yaml · master · HJArch-Internal / yugong-conf · GitLab](https://gitlab.yeshj.com/hjarch-practice/yugong-conf/blob/master/dict-dev/mssql-mysql.yaml)
-*   修改 properties 里面的数据库配置：
+## AdminGuide
 
-    ```
-    yugong.database.source.url=
-    yugong.database.source.username=
-    yugong.database.source.password=
-    yugong.database.target.url=
-    yugong.database.target.username=
-    yugong.database.target.password=
-    ```
-*   修改 properties 里面的表配置，添加需要迁移的表（yugong 是白名单模式）：
+See the page for admin deploy guide:
+[AdminGuide](https://github.com/alibaba/yugong/wiki/AdminGuide)
 
-    ```
-    yugong.table.white=
-    ```
-*   修改 properties 里面的运行模式，CHECK（检查模式），FULL（写入模式）：
+## Performance
 
-    ```
-    yugong.table.mode=
-    ```
-*   运行
+See the page for yugong performance :
+[Performance](https://github.com/alibaba/yugong/wiki/Performance)
 
-## Tips
+## 相关资料
 
-odjbc missing:
+1.  yugong简单介绍ppt: [ppt](https://github.com/alibaba/yugong/blob/master/docs/yugong_Intro.ppt?raw=true)
+2.  [分布式关系型数据库服务DRDS](https://www.aliyun.com/product/drds)
+    (前身为阿里巴巴公司的Cobar/TDDL的演进版本, 基本原理为MySQL分库分表)
 
->   ould not resolve dependencies for project com.taobao.yugong:yugong:jar:1.2.0:
->   The following artifacts could not be resolved: com.oracle:ojdbc14:jar:10.2.0.4.0,
->   com.alibaba.otter:canal.client:jar:1.0.25-SNAPSHOT:
->   Failure to find com.oracle:ojdbc14:jar:10.2.0.4.0 in
->   http://maven.aliyun.com/nexus/content/groups/public/ was cached in the local repository,
->   resolution will not be reattempted until the update interval of maven.aliyun.com
->   has elapsed or updates are forced
+## 问题反馈
 
-```
-open http://www.oracle.com/technetwork/apps-tech/jdbc-10201-088211.html
-# download ojbc14_g.jar
-mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=10.2.0.4.0 -Dpackaging=jar -Dfile=ojdbc14_g.jar -DgeneratePom=true
-```
+1.  qq交流群： 537157866
+2.  邮件交流： jianghang115@gmail.com, zylicfc@gmail.com
+3.  新浪微博： agapple0002
+4.  报告issue：[issues](https://github.com/alibaba/yugong/issues)
 
-canal-client missing:
-
->   Could not resolve dependencies for project com.taobao.yugong:yugong:jar:1.2.0: Failure to find
->   com.alibaba.otter:canal.client:jar:1.0.25-SNAPSHOT in
->   https://oss.sonatype.org/content/repositories/snapshots was cached in the local repository,
->   resolution will not be reattempted until the update interval of sonatype has elapsed or updates are
->   forced
-
-```
-git clone https://github.com/alibaba/canal
-cd canal
-git checkout 2cebfa0
-mvn clean install
-```
-
-## 需要帮助怎么办？
-
-
-请联系作者 **3D**，CCTalk 找我「狄敬超」。
-
-
-相关文章：
-
-*   [从 SQL Server 到 MySQL （一）：异构数据库迁移 - Log4D](https://blog.alswl.com/2018/03/sql-server-migration-1/) 
-*   [从 SQL Server 到 MySQL（二）：在线迁移，空中换发动机 - Log4D](https://blog.alswl.com/2018/05/sql-server-migration-2/)

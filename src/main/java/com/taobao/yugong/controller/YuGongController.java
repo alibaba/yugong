@@ -303,6 +303,7 @@ public class YuGongController extends AbstractYuGongLifeCycle {
 
   private RecordExtractor chooseExtractor(TableHolder tableHolder, YuGongContext context, RunMode runMode,
       RecordPositioner positioner) {
+    boolean once = config.getBoolean("yugong.extractor.once", false);
     if (runMode == RunMode.FULL || runMode == RunMode.CHECK) {
       String tablename = tableHolder.table.getName();
       String fullName = tableHolder.table.getFullName();
@@ -619,7 +620,28 @@ public class YuGongController extends AbstractYuGongLifeCycle {
     context.setIgnoreSchema(config.getBoolean("yugong.table.ignoreSchema", false));
     context.setSkipApplierException(config.getBoolean("yugong.table.skipApplierException", false));
     context.setRunMode(runMode);
+    context.setMViewLogType(config.getString("yugong.table.inc.mviewlogtype", "PK"));
+    context.setTablepks(getTablePKs(config.getString("yugong.table.inc.tablepks")));
     return context;
+  }
+
+  private Map<String, String[]> getTablePKs(String tablepks) {
+    if (StringUtils.isBlank(tablepks)) {
+      return null;
+    } else {
+      Map<String, String[]> tps = new HashMap();
+      String[] tables = tablepks.split("\\|");
+      for (String table : tables) {
+        String[] tablev = table.split("&");
+        String tableName = tablev[0];
+        String[] pks = new String[tablev.length - 1];
+        for (int i = 1; i < tablev.length; i++) {
+          pks[i - 1] = new String(tablev[i]).toUpperCase().toString();
+        }
+        tps.put(new String(tableName).toUpperCase().toString(), pks);
+      }
+      return tps;
+    }
   }
 
   private DataSource initDataSource(String type) {
