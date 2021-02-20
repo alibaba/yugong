@@ -68,13 +68,13 @@ public class OracleFullRecordExtractor extends AbstractOracleRecordExtractor {
             this.getMinPkSql = new MessageFormat(MIN_PK_FORMAT).format(new Object[] { primaryKey, schemaName, tableName });
         }
 
+		queue = new LinkedBlockingQueue<>(context.getOnceCrawNum() * 2);
         extractorThread = new NamedThreadFactory(this.getClass().getSimpleName() + "-"
                                                  + context.getTableMeta().getFullName()).newThread(new ContinueExtractor(this,
             context,
             queue));
-        extractorThread.start();
 
-        queue = new LinkedBlockingQueue<>(context.getOnceCrawNum() * 2);
+        extractorThread.start();
         tracer.update(context.getTableMeta().getFullName(), ProgressStatus.FULLING);
     }
 
