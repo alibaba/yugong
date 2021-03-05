@@ -49,7 +49,7 @@ if [ ! -f "$pidfile" ];then
 	exit
 fi
 
-if [ ! -f "$pidfile" ];then
+if [ -f "$pidfile" ];then
     pid=`cat $pidfile`
 fi
 
